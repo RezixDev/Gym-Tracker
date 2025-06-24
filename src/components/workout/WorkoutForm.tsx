@@ -2,7 +2,7 @@
 
 import { useForm as useTanstackForm } from "@tanstack/react-form";
 import { format } from "date-fns";
-import { CalendarIcon } from "lucide-react";
+import { CalendarIcon, Plus, Trash2 } from "lucide-react";
 import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
@@ -24,6 +24,8 @@ export function WorkoutForm({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [usePastExercise, setUsePastExercise] = useState(true);
   const [selectedPastExercise, setSelectedPastExercise] = useState("");
+  const [sets, setSets] = useState<WorkoutSet[]>([{ weight: 0, repetitions: 0 }]);
+
   const { fieldVisibility } = useDebugSettings();
 
   const pastExercises = Array.from(new Set(workouts.map((w) => w.exercise)));
@@ -53,6 +55,24 @@ export function WorkoutForm({
     }
   };
 
+  const addSet = () => {
+    const lastSet = sets[sets.length - 1];
+    setSets([
+      ...sets,
+      { weight: lastSet?.weight || 0, repetitions: lastSet?.repetitions || 0 },
+    ]);
+  };
+
+  const removeSet = (index: number) => {
+    if (sets.length > 1) {
+      setSets(sets.filter((_, i) => i !== index));
+    }
+  };
+
+  const updateSet = (index: number, field: keyof WorkoutSet, value: number) => {
+    setSets(sets.map((set, i) => (i === index ? { ...set, [field]: value } : set)));
+  };
+
   const form = useTanstackForm({
     defaultValues: {
       exercise: "",
@@ -69,11 +89,16 @@ export function WorkoutForm({
         return;
       }
 
+      const validSets = sets.filter((set) => set.weight > 0 && set.repetitions > 0);
+      if (validSets.length === 0) {
+        toast.error("Please add at least one set with weight and repetitions.");
+        return;
+      }
+
       addWorkout({
         date: format(selectedDate, "yyyy-MM-dd"),
         exercise: usePastExercise ? selectedPastExercise : value.exercise,
-        weight: Number(value.weight),
-        repetitions: Number(value.repetitions),
+        sets: validSets,
         notes: fieldVisibility.showNotes ? value.notes : "",
         machineNumber: fieldVisibility.showMachineNumber ? value.machineNumber : "",
       });
@@ -82,6 +107,7 @@ export function WorkoutForm({
       form.reset();
       setSelectedDate(new Date());
       setSelectedPastExercise("");
+      setSets([{ weight: 0, repetitions: 0 }]);
     },
   });
 
@@ -180,6 +206,70 @@ export function WorkoutForm({
         )}
       </div>
 
+      <div className="flex flex-col space-y-4">
+        <div className="flex items-center justify-between">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={addSet}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            Add Set
+          </Button>
+        </div>
+
+        <div className="space-y-3">
+          {sets.map((set, index) => (
+            <div
+              key={index}
+              className="flex items-center gap-4 rounded-lg border bg-gray-50 p-4 dark:bg-gray-800"
+            >
+              <span className="min-w-[60px] text-sm font-medium text-gray-600 dark:text-gray-300">
+                Set {index + 1}:
+              </span>
+
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  value={set.weight || ""}
+                  onChange={(e) => updateSet(index, "weight", Number(e.target.value))}
+                  placeholder="Weight"
+                  className="w-24"
+                />
+                <span className="text-sm text-gray-600 dark:text-gray-300">kg</span>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <Input
+                  type="number"
+                  value={set.repetitions || ""}
+                  onChange={(e) =>
+                    updateSet(index, "repetitions", Number(e.target.value))
+                  }
+                  placeholder="Reps"
+                  className="w-24"
+                />
+                <span className="text-sm text-gray-600 dark:text-gray-300">reps</span>
+              </div>
+
+              {sets.length > 1 && (
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => removeSet(index)}
+                  className="flex items-center gap-1 text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
       {/* Form Fields - Dynamically shown based on settings */}
       <div className={`grid gap-4 ${getGridColumns()}`}>
         {fieldVisibility.showMachineNumber && (
@@ -196,34 +286,6 @@ export function WorkoutForm({
             )}
           </form.Field>
         )}
-
-        <form.Field name="weight">
-          {(field) => (
-            <div className="flex flex-col space-y-2">
-              <label className="text-sm font-medium">Weight (kg)</label>
-              <Input
-                type="number"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="Enter weight in kg"
-              />
-            </div>
-          )}
-        </form.Field>
-
-        <form.Field name="repetitions">
-          {(field) => (
-            <div className="flex flex-col space-y-2">
-              <label className="text-sm font-medium">Repetitions</label>
-              <Input
-                type="number"
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="Enter number of repetitions"
-              />
-            </div>
-          )}
-        </form.Field>
 
         {fieldVisibility.showNotes && (
           <form.Field name="notes">

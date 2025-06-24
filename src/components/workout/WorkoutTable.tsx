@@ -42,13 +42,6 @@ export function WorkoutTable({
     [workouts],
   );
 
-  // Add this to see what's causing the issue
-  console.log("🏃 uniqueExercises:", uniqueExercises);
-  console.log(
-    "🏃 uniqueExercises with types:",
-    uniqueExercises.map((ex) => ({ value: ex, type: typeof ex, length: ex?.length })),
-  );
-
   // Combine filtering and sorting in a single useMemo
   const processedWorkouts = useMemo(() => {
     console.log("🔍 Filter Debug:");
@@ -60,7 +53,6 @@ export function WorkoutTable({
       selectedExercise === "all"
         ? workouts
         : workouts.filter((w) => {
-            // Normalize both values for comparison
             const workoutExercise = (w.exercise || "").toString().trim();
             const selectedEx = selectedExercise.toString().trim();
             const match = workoutExercise === selectedEx;
@@ -78,9 +70,6 @@ export function WorkoutTable({
     );
   }, [workouts, selectedExercise]);
 
-  console.log("🎯 selectedExercise:", selectedExercise);
-  console.log("🔎 filtered workouts:", processedWorkouts);
-
   const columns = useMemo(
     () => [
       columnHelper.accessor("date", {
@@ -95,13 +84,36 @@ export function WorkoutTable({
         header: "Machine Number",
         cell: (info) => info.getValue() || "-",
       }),
-      columnHelper.accessor("weight", {
-        header: "Weight (kg)",
-        cell: (info) => info.getValue(),
+      columnHelper.accessor("sets", {
+        header: "Sets",
+        cell: (info) => {
+          const sets = info.getValue();
+          if (!sets || sets.length === 0) return "-";
+
+          return (
+            <div className="space-y-1">
+              {sets.map((set, index) => (
+                <div key={index} className="text-xs">
+                  Set {index + 1}: {set.weight}kg × {set.repetitions} reps
+                </div>
+              ))}
+            </div>
+          );
+        },
       }),
-      columnHelper.accessor("repetitions", {
-        header: "Reps",
-        cell: (info) => info.getValue(),
+      columnHelper.display({
+        id: "totalVolume",
+        header: "Total Volume",
+        cell: ({ row }) => {
+          const sets = row.original.sets;
+          if (!sets || sets.length === 0) return "-";
+
+          const totalVolume = sets.reduce(
+            (sum, set) => sum + set.weight * set.repetitions,
+            0,
+          );
+          return `${totalVolume}kg`;
+        },
       }),
       columnHelper.accessor("notes", {
         header: "Notes",
@@ -134,15 +146,6 @@ export function WorkoutTable({
     columns,
     getCoreRowModel: getCoreRowModel(),
   });
-
-  // Debug what the table is actually rendering
-  console.log("📊 Table debug:");
-  console.log("  - processedWorkouts:", processedWorkouts);
-  console.log("  - table.getRowModel().rows:", table.getRowModel().rows);
-  console.log(
-    "  - table data:",
-    table.getRowModel().rows.map((r) => r.original),
-  );
 
   return (
     <div className="space-y-4">
