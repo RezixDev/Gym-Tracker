@@ -12,6 +12,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { Workout } from "../../hooks/useWorkoutData";
+import { useDebugSettings } from "./DebugSettingsContext";
 
 export function WorkoutForm({
   addWorkout,
@@ -23,6 +24,7 @@ export function WorkoutForm({
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [usePastExercise, setUsePastExercise] = useState(true);
   const [selectedPastExercise, setSelectedPastExercise] = useState("");
+  const { fieldVisibility } = useDebugSettings();
 
   const pastExercises = Array.from(new Set(workouts.map((w) => w.exercise)));
 
@@ -41,8 +43,12 @@ export function WorkoutForm({
         // Auto-fill form fields with most recent data
         form.setFieldValue("weight", mostRecent.weight.toString());
         form.setFieldValue("repetitions", mostRecent.repetitions.toString());
-        form.setFieldValue("machineNumber", mostRecent.machineNumber || "");
-        form.setFieldValue("notes", mostRecent.notes || "");
+        if (fieldVisibility.showMachineNumber) {
+          form.setFieldValue("machineNumber", mostRecent.machineNumber || "");
+        }
+        if (fieldVisibility.showNotes) {
+          form.setFieldValue("notes", mostRecent.notes || "");
+        }
       }
     }
   };
@@ -68,8 +74,8 @@ export function WorkoutForm({
         exercise: usePastExercise ? selectedPastExercise : value.exercise,
         weight: Number(value.weight),
         repetitions: Number(value.repetitions),
-        notes: value.notes,
-        machineNumber: value.machineNumber,
+        notes: fieldVisibility.showNotes ? value.notes : "",
+        machineNumber: fieldVisibility.showMachineNumber ? value.machineNumber : "",
       });
 
       toast.success("Workout saved successfully! 🎉");
@@ -78,6 +84,20 @@ export function WorkoutForm({
       setSelectedPastExercise("");
     },
   });
+
+  // Calculate dynamic grid columns based on visible fields
+  const getGridColumns = () => {
+    let count = 2; // weight and repetitions are always shown
+    if (fieldVisibility.showMachineNumber) count++;
+    if (fieldVisibility.showNotes) count++;
+
+    return {
+      1: "grid-cols-1",
+      2: "grid-cols-1 sm:grid-cols-2",
+      3: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-3",
+      4: "grid-cols-1 sm:grid-cols-2 lg:grid-cols-4",
+    }[count];
+  };
 
   return (
     <form
@@ -160,20 +180,22 @@ export function WorkoutForm({
         )}
       </div>
 
-      {/* Form Fields - Arranged Horizontally in a Row */}
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <form.Field name="machineNumber">
-          {(field) => (
-            <div className="flex flex-col space-y-2">
-              <label className="text-sm font-medium">Machine Number</label>
-              <Input
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="Enter Machine Number"
-              />
-            </div>
-          )}
-        </form.Field>
+      {/* Form Fields - Dynamically shown based on settings */}
+      <div className={`grid gap-4 ${getGridColumns()}`}>
+        {fieldVisibility.showMachineNumber && (
+          <form.Field name="machineNumber">
+            {(field) => (
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-medium">Machine Number</label>
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Enter Machine Number"
+                />
+              </div>
+            )}
+          </form.Field>
+        )}
 
         <form.Field name="weight">
           {(field) => (
@@ -203,18 +225,20 @@ export function WorkoutForm({
           )}
         </form.Field>
 
-        <form.Field name="notes">
-          {(field) => (
-            <div className="flex flex-col space-y-2">
-              <label className="text-sm font-medium">Notes</label>
-              <Input
-                value={field.state.value}
-                onChange={(e) => field.handleChange(e.target.value)}
-                placeholder="Notes"
-              />
-            </div>
-          )}
-        </form.Field>
+        {fieldVisibility.showNotes && (
+          <form.Field name="notes">
+            {(field) => (
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-medium">Notes</label>
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Notes"
+                />
+              </div>
+            )}
+          </form.Field>
+        )}
       </div>
 
       <Button type="submit" className="w-full">
