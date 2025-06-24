@@ -24,21 +24,7 @@ export function useWorkoutData() {
     if (storedWorkouts) {
       try {
         const parsed: Workout[] = JSON.parse(storedWorkouts);
-        // Migration logic for old data structure
-        const migratedWorkouts = parsed.map((workout) => {
-          // If workout has old structure (weight/repetitions instead of sets)
-          if ("weight" in workout && "repetitions" in workout && !("sets" in workout)) {
-            return {
-              ...workout,
-              sets: [{ weight: workout.weight, repetitions: workout.repetitions }],
-              // Remove old properties
-              weight: undefined,
-              repetitions: undefined,
-            };
-          }
-          return workout;
-        });
-        setWorkouts(migratedWorkouts);
+        setWorkouts(parsed);
       } catch (err) {
         console.error("❌ Failed to parse workouts", err);
         setWorkouts([]);

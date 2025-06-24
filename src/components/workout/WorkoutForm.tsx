@@ -105,7 +105,6 @@ export function WorkoutForm({
 
       toast.success("Workout saved successfully! 🎉");
       form.reset();
-      setSelectedDate(new Date());
       setSelectedPastExercise("");
       setSets([{ weight: 0, repetitions: 0 }]);
     },
@@ -154,7 +153,7 @@ export function WorkoutForm({
               mode="single"
               selected={selectedDate}
               onSelect={setSelectedDate}
-              initialFocus
+              autoFocus
             />
           </PopoverContent>
         </Popover>
@@ -206,6 +205,38 @@ export function WorkoutForm({
         )}
       </div>
 
+      {/* Form Fields - Dynamically shown based on settings */}
+      <div className={`grid gap-4 ${getGridColumns()}`}>
+        {fieldVisibility.showMachineNumber && (
+          <form.Field name="machineNumber">
+            {(field) => (
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-medium">Machine Number</label>
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Enter Machine Number"
+                />
+              </div>
+            )}
+          </form.Field>
+        )}
+
+        {fieldVisibility.showNotes && (
+          <form.Field name="notes">
+            {(field) => (
+              <div className="flex flex-col space-y-2">
+                <label className="text-sm font-medium">Notes</label>
+                <Input
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  placeholder="Notes"
+                />
+              </div>
+            )}
+          </form.Field>
+        )}
+      </div>
       <div className="flex flex-col space-y-4">
         <div className="flex items-center justify-between">
           <Button
@@ -268,39 +299,6 @@ export function WorkoutForm({
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Form Fields - Dynamically shown based on settings */}
-      <div className={`grid gap-4 ${getGridColumns()}`}>
-        {fieldVisibility.showMachineNumber && (
-          <form.Field name="machineNumber">
-            {(field) => (
-              <div className="flex flex-col space-y-2">
-                <label className="text-sm font-medium">Machine Number</label>
-                <Input
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Enter Machine Number"
-                />
-              </div>
-            )}
-          </form.Field>
-        )}
-
-        {fieldVisibility.showNotes && (
-          <form.Field name="notes">
-            {(field) => (
-              <div className="flex flex-col space-y-2">
-                <label className="text-sm font-medium">Notes</label>
-                <Input
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Notes"
-                />
-              </div>
-            )}
-          </form.Field>
-        )}
       </div>
 
       <Button type="submit" className="w-full">

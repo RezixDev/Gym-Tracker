@@ -11,8 +11,8 @@ export function Header() {
 
   const routes = [
     { name: "Workout", path: "/" },
-    { name: "Sleep", path: "/sleep" },
     { name: "Nutrition", path: "/nutrition" },
+    { name: "Sleep", path: "/sleep" },
     { name: "Stress", path: "/stress" },
     { name: "Muscles", path: "/muscles" },
   ];
