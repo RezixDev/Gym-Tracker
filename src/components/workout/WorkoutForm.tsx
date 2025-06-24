@@ -1,49 +1,70 @@
-'use client';
+"use client";
 
-import { useForm as useTanstackForm } from '@tanstack/react-form';
-import { format } from 'date-fns';
-import { useState } from 'react';
-import { CalendarIcon } from 'lucide-react';
+import { useForm as useTanstackForm } from "@tanstack/react-form";
+import { format } from "date-fns";
+import { CalendarIcon } from "lucide-react";
+import { useState } from "react";
 
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
-import { Calendar } from '@/components/ui/calendar';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { toast } from 'sonner';
-import { cn } from '@/lib/utils';
-import { Workout } from '../../hooks/useWorkoutData';
+import { Button } from "@/components/ui/button";
+import { Calendar } from "@/components/ui/calendar";
+import { Input } from "@/components/ui/input";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { cn } from "@/lib/utils";
+import { toast } from "sonner";
+import { Workout } from "../../hooks/useWorkoutData";
 
 export function WorkoutForm({
   addWorkout,
   workouts,
 }: {
-  addWorkout: (workout: Workout) => void;
+  addWorkout: (workout: Omit<Workout, "id">) => void;
   workouts: Workout[];
 }) {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [usePastExercise, setUsePastExercise] = useState(true);
-  const [selectedPastExercise, setSelectedPastExercise] = useState('');
+  const [selectedPastExercise, setSelectedPastExercise] = useState("");
 
   const pastExercises = Array.from(new Set(workouts.map((w) => w.exercise)));
 
+  const getMostRecentWorkoutForExercise = (exerciseName: string) => {
+    return workouts
+      .filter((w) => w.exercise === exerciseName)
+      .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())[0];
+  };
+
+  const handlePastExerciseSelection = (exerciseName: string) => {
+    setSelectedPastExercise(exerciseName);
+
+    if (exerciseName) {
+      const mostRecent = getMostRecentWorkoutForExercise(exerciseName);
+      if (mostRecent) {
+        // Auto-fill form fields with most recent data
+        form.setFieldValue("weight", mostRecent.weight.toString());
+        form.setFieldValue("repetitions", mostRecent.repetitions.toString());
+        form.setFieldValue("machineNumber", mostRecent.machineNumber || "");
+        form.setFieldValue("notes", mostRecent.notes || "");
+      }
+    }
+  };
+
   const form = useTanstackForm({
     defaultValues: {
-      exercise: '',
-      weight: '',
-      repetitions: '',
-      notes: '',
-      machineNumber: '',
+      exercise: "",
+      weight: "",
+      repetitions: "",
+      notes: "",
+      machineNumber: "",
     },
     onSubmit: async ({ value }) => {
       console.log("📝 Submitting new workout:", value);
 
       if (!selectedDate) {
-        toast.error('Please select a workout date.');
+        toast.error("Please select a workout date.");
         return;
       }
 
       addWorkout({
-        date: format(selectedDate, 'yyyy-MM-dd'),
+        date: format(selectedDate, "yyyy-MM-dd"),
         exercise: usePastExercise ? selectedPastExercise : value.exercise,
         weight: Number(value.weight),
         repetitions: Number(value.repetitions),
@@ -51,10 +72,10 @@ export function WorkoutForm({
         machineNumber: value.machineNumber,
       });
 
-      toast.success('Workout saved successfully! 🎉');
+      toast.success("Workout saved successfully! 🎉");
       form.reset();
       setSelectedDate(new Date());
-      setSelectedPastExercise('');
+      setSelectedPastExercise("");
     },
   });
 
@@ -75,10 +96,10 @@ export function WorkoutForm({
               variant="outline"
               className={cn(
                 "w-[240px] pl-3 text-left font-normal",
-                !selectedDate && "text-muted-foreground"
+                !selectedDate && "text-muted-foreground",
               )}
             >
-              {selectedDate ? format(selectedDate, 'PPP') : <span>Pick a date</span>}
+              {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
               <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
             </Button>
           </PopoverTrigger>
@@ -99,14 +120,14 @@ export function WorkoutForm({
         <div className="flex gap-4">
           <Button
             type="button"
-            variant={usePastExercise ? 'default' : 'outline'}
+            variant={usePastExercise ? "default" : "outline"}
             onClick={() => setUsePastExercise(true)}
           >
             Select from Past
           </Button>
           <Button
             type="button"
-            variant={!usePastExercise ? 'default' : 'outline'}
+            variant={!usePastExercise ? "default" : "outline"}
             onClick={() => setUsePastExercise(false)}
           >
             Enter New
@@ -116,8 +137,8 @@ export function WorkoutForm({
         {usePastExercise ? (
           <select
             value={selectedPastExercise}
-            onChange={(e) => setSelectedPastExercise(e.target.value)}
-            className="border rounded-md p-2"
+            onChange={(e) => handlePastExerciseSelection(e.target.value)}
+            className="rounded-md border p-2"
           >
             <option value="">Select an exercise</option>
             {pastExercises.map((exercise) => (
@@ -139,48 +160,62 @@ export function WorkoutForm({
         )}
       </div>
 
-      {/* Form Fields */}
-      <form.Field name="machineNumber">
-        {(field) => (
-          <Input
-            value={field.state.value}
-            onChange={(e) => field.handleChange(e.target.value)}
-            placeholder="Enter Machine Number"
-          />
-        )}
-      </form.Field>
+      {/* Form Fields - Arranged Horizontally in a Row */}
+      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <form.Field name="machineNumber">
+          {(field) => (
+            <div className="flex flex-col space-y-2">
+              <label className="text-sm font-medium">Machine Number</label>
+              <Input
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="Enter Machine Number"
+              />
+            </div>
+          )}
+        </form.Field>
 
-      <form.Field name="weight">
-        {(field) => (
-          <Input
-            type="number"
-            value={field.state.value}
-            onChange={(e) => field.handleChange(e.target.value)}
-            placeholder="Enter weight in kg"
-          />
-        )}
-      </form.Field>
+        <form.Field name="weight">
+          {(field) => (
+            <div className="flex flex-col space-y-2">
+              <label className="text-sm font-medium">Weight (kg)</label>
+              <Input
+                type="number"
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="Enter weight in kg"
+              />
+            </div>
+          )}
+        </form.Field>
 
-      <form.Field name="repetitions">
-        {(field) => (
-          <Input
-            type="number"
-            value={field.state.value}
-            onChange={(e) => field.handleChange(e.target.value)}
-            placeholder="Enter number of repetitions"
-          />
-        )}
-      </form.Field>
+        <form.Field name="repetitions">
+          {(field) => (
+            <div className="flex flex-col space-y-2">
+              <label className="text-sm font-medium">Repetitions</label>
+              <Input
+                type="number"
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="Enter number of repetitions"
+              />
+            </div>
+          )}
+        </form.Field>
 
-      <form.Field name="notes">
-        {(field) => (
-          <Input
-            value={field.state.value}
-            onChange={(e) => field.handleChange(e.target.value)}
-            placeholder="Notes (optional)"
-          />
-        )}
-      </form.Field>
+        <form.Field name="notes">
+          {(field) => (
+            <div className="flex flex-col space-y-2">
+              <label className="text-sm font-medium">Notes</label>
+              <Input
+                value={field.state.value}
+                onChange={(e) => field.handleChange(e.target.value)}
+                placeholder="Notes"
+              />
+            </div>
+          )}
+        </form.Field>
+      </div>
 
       <Button type="submit" className="w-full">
         Log Workout
