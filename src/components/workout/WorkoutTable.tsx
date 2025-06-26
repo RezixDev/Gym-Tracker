@@ -7,15 +7,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import {
-  createColumnHelper
-} from "@tanstack/react-table";
+
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Workout } from "../../hooks/useWorkoutData";
 import { useDebugSettings } from "./DebugSettingsContext";
-
-const columnHelper = createColumnHelper<Workout>();
 
 export function WorkoutTable({
   workouts,
@@ -90,77 +86,6 @@ export function WorkoutTable({
       })
       .sort(([dateA], [dateB]) => new Date(dateB).getTime() - new Date(dateA).getTime());
   }, [workouts, selectedExercise]);
-
-  const columns = useMemo(
-    () => [
-      columnHelper.accessor("exercise", {
-        header: "Exercise",
-        cell: (info) => info.getValue() || "-",
-      }),
-      ...(fieldVisibility.showMachineNumber ? [
-        columnHelper.accessor("machineNumber", {
-          header: "Machine Number",
-          cell: (info) => info.getValue() || "-",
-        })
-      ] : []),
-      columnHelper.accessor("sets", {
-        header: "Sets",
-        cell: (info) => {
-          const sets = info.getValue();
-          if (!sets || sets.length === 0) return "-";
-
-          return (
-            <div className="space-y-1">
-              {sets.map((set, index) => (
-                <div key={index} className="text-xs">
-                  Set {index + 1}: {set.weight}kg × {set.repetitions} reps
-                </div>
-              ))}
-            </div>
-          );
-        },
-      }),
-      columnHelper.display({
-        id: "totalVolume",
-        header: "Total Volume",
-        cell: ({ row }) => {
-          const sets = row.original.sets;
-          if (!sets || sets.length === 0) return "-";
-
-          const totalVolume = sets.reduce(
-            (sum, set) => sum + set.weight * set.repetitions,
-            0,
-          );
-          return `${totalVolume}kg`;
-        },
-      }),
-      ...(fieldVisibility.showNotes ? [
-        columnHelper.accessor("notes", {
-          header: "Notes",
-          cell: (info) => info.getValue() || "-",
-        })
-      ] : []),
-      columnHelper.display({
-        id: "actions",
-        header: "Actions",
-        cell: ({ row }) => (
-          <Button
-            variant="destructive"
-            size="sm"
-            onClick={() => {
-              if (row.original.id) {
-                deleteWorkout(row.original.id);
-                toast.success("Workout deleted!");
-              }
-            }}
-          >
-            Delete
-          </Button>
-        ),
-      }),
-    ],
-    [deleteWorkout, fieldVisibility.showMachineNumber, fieldVisibility.showNotes],
-  );
 
   return (
     <div className="space-y-4">
