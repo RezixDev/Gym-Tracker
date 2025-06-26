@@ -13,6 +13,7 @@ import {
 import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { Workout } from "../../hooks/useWorkoutData";
+import { useDebugSettings } from "./DebugSettingsContext";
 
 const columnHelper = createColumnHelper<Workout>();
 
@@ -26,6 +27,7 @@ export function WorkoutTable({
   console.log("🏋️ Table data:", workouts);
 
   const [selectedExercise, setSelectedExercise] = useState("all");
+  const { fieldVisibility } = useDebugSettings();
 
   const uniqueExercises = useMemo(
     () =>
@@ -95,10 +97,12 @@ export function WorkoutTable({
         header: "Exercise",
         cell: (info) => info.getValue() || "-",
       }),
-      columnHelper.accessor("machineNumber", {
-        header: "Machine Number",
-        cell: (info) => info.getValue() || "-",
-      }),
+      ...(fieldVisibility.showMachineNumber ? [
+        columnHelper.accessor("machineNumber", {
+          header: "Machine Number",
+          cell: (info) => info.getValue() || "-",
+        })
+      ] : []),
       columnHelper.accessor("sets", {
         header: "Sets",
         cell: (info) => {
@@ -130,10 +134,12 @@ export function WorkoutTable({
           return `${totalVolume}kg`;
         },
       }),
-      columnHelper.accessor("notes", {
-        header: "Notes",
-        cell: (info) => info.getValue() || "-",
-      }),
+      ...(fieldVisibility.showNotes ? [
+        columnHelper.accessor("notes", {
+          header: "Notes",
+          cell: (info) => info.getValue() || "-",
+        })
+      ] : []),
       columnHelper.display({
         id: "actions",
         header: "Actions",
@@ -153,7 +159,7 @@ export function WorkoutTable({
         ),
       }),
     ],
-    [deleteWorkout],
+    [deleteWorkout, fieldVisibility.showMachineNumber, fieldVisibility.showNotes],
   );
 
   return (
@@ -210,18 +216,22 @@ export function WorkoutTable({
                         <th className="px-6 py-3 text-left text-sm font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
                           Exercise
                         </th>
-                        <th className="px-6 py-3 text-left text-sm font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                          Machine Number
-                        </th>
+                        {fieldVisibility.showMachineNumber && (
+                          <th className="px-6 py-3 text-left text-sm font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                            Machine Number
+                          </th>
+                        )}
                         <th className="px-6 py-3 text-left text-sm font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
                           Sets
                         </th>
                         <th className="px-6 py-3 text-left text-sm font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
                           Total Volume
                         </th>
-                        <th className="px-6 py-3 text-left text-sm font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
-                          Notes
-                        </th>
+                        {fieldVisibility.showNotes && (
+                          <th className="px-6 py-3 text-left text-sm font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
+                            Notes
+                          </th>
+                        )}
                         <th className="px-6 py-3 text-left text-sm font-medium tracking-wider text-gray-500 uppercase dark:text-gray-300">
                           Actions
                         </th>
@@ -242,9 +252,11 @@ export function WorkoutTable({
                             <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-700 dark:text-gray-200">
                               {workout.exercise || "-"}
                             </td>
-                            <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-700 dark:text-gray-200">
-                              {workout.machineNumber || "-"}
-                            </td>
+                            {fieldVisibility.showMachineNumber && (
+                              <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-700 dark:text-gray-200">
+                                {workout.machineNumber || "-"}
+                              </td>
+                            )}
                             <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-700 dark:text-gray-200">
                               {!workout.sets || workout.sets.length === 0 ? "-" : (
                                 <div className="space-y-1">
@@ -259,9 +271,11 @@ export function WorkoutTable({
                             <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-700 dark:text-gray-200">
                               {totalVolume > 0 ? `${totalVolume}kg` : "-"}
                             </td>
-                            <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-700 dark:text-gray-200">
-                              {workout.notes || "-"}
-                            </td>
+                            {fieldVisibility.showNotes && (
+                              <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-700 dark:text-gray-200">
+                                {workout.notes || "-"}
+                              </td>
+                            )}
                             <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-700 dark:text-gray-200">
                               <Button
                                 variant="destructive"
