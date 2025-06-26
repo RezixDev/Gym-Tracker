@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useForm } from '@tanstack/react-form';
-import { Plus, Calendar, Apple, Coffee, UtensilsCrossed, Cookie, BarChart3, History } from 'lucide-react';
+import { Plus, Calendar, Apple, Coffee, UtensilsCrossed, Cookie, BarChart3, History, CalendarDays } from 'lucide-react';
+import { format } from 'date-fns';
 
 // Shadcn UI components
 import { Button } from '@/components/ui/button';
@@ -12,7 +13,10 @@ import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Separator } from '@/components/ui/separator';
+import { Calendar as CalendarComponent } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
 
 // Import the hook and components
 import { useNutritionData } from '../../hooks/useNutritionData';
@@ -32,8 +36,12 @@ export function NutritionForm() {
     nutritionCompleteness
   } = useNutritionData();
 
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [selectedDate, setSelectedDate] = useState(new Date());
+  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('today');
+
+  // Convert date to string for filtering
+  const selectedDateString = selectedDate.toISOString().split('T')[0];
 
   // Auto-determine meal type based on current time
   const getMealTypeFromTime = (date = new Date()): 'breakfast' | 'lunch' | 'dinner' | 'snack' => {
@@ -79,7 +87,7 @@ export function NutritionForm() {
 
       // Add meal using the hook
       addMeal({
-        date: selectedDate,
+        date: selectedDateString,
         mealType,
         foods: [foodItem],
         notes: value.notes || '',
@@ -96,14 +104,14 @@ export function NutritionForm() {
 
   // Filter meals by selected date
   const todaysMeals = useMemo(() => {
-    return meals.filter(meal => meal.date === selectedDate)
+    return meals.filter(meal => meal.date === selectedDateString)
       .sort((a, b) => {
         // Sort by createdAt timestamp
         const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
         const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
         return timeA - timeB;
       });
-  }, [meals, selectedDate]);
+  }, [meals, selectedDateString]);
 
   // Calculate daily totals
   const dailyTotals = useMemo(() => {
@@ -130,14 +138,21 @@ export function NutritionForm() {
     return new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  const formatDate = (dateStr: string) => {
-    const date = new Date(dateStr);
+  const formatDate = (date: Date) => {
     return date.toLocaleDateString('en-US', { 
       weekday: 'long', 
       year: 'numeric', 
       month: 'long', 
       day: 'numeric' 
     });
+  };
+
+  // Handle calendar date selection
+  const handleDateSelect = (date: Date | undefined) => {
+    if (date) {
+      setSelectedDate(date);
+      setIsCalendarOpen(false);
+    }
   };
 
   return (
@@ -151,13 +166,29 @@ export function NutritionForm() {
           </p>
         </div>
         <div className="flex items-center gap-3">
-          <Calendar className="h-4 w-4 text-gray-500" />
-          <Input
-            type="date"
-            value={selectedDate}
-            onChange={(e) => setSelectedDate(e.target.value)}
-            className="w-auto"
-          />
+          <CalendarDays className="h-4 w-4 text-gray-500" />
+          <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
+            <PopoverTrigger asChild>
+              <Button
+                variant="outline"
+                className={cn(
+                  "w-[240px] justify-start text-left font-normal",
+                  !selectedDate && "text-muted-foreground"
+                )}
+              >
+                <Calendar className="mr-2 h-4 w-4" />
+                {selectedDate ? format(selectedDate, "PPP") : <span>Pick a date</span>}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-auto p-0" align="end">
+              <CalendarComponent
+                mode="single"
+                selected={selectedDate}
+                onSelect={handleDateSelect}
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
         </div>
       </div>
 
