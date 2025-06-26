@@ -1,10 +1,6 @@
-// components/nutrition/NutriTracker.tsx
-
 import React, { useState, useMemo } from 'react';
 import { useForm } from '@tanstack/react-form';
 import { Plus, Calendar, Apple, Coffee, UtensilsCrossed, Cookie } from 'lucide-react';
-import { format } from 'date-fns';
-import { toast } from 'sonner';
 
 // Shadcn UI components
 import { Button } from '@/components/ui/button';
@@ -14,11 +10,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-
-// Import the other components
-import { NutritionTable } from './NutritionTable';
-import { NutritionStats } from './NutritionStats';
 
 // Types matching the Meal type from useNutritionData
 export interface Food {
@@ -70,7 +61,6 @@ const initialMeals: Meal[] = [
 export function NutritionForm() {
   const [meals, setMeals] = useState<Meal[]>(initialMeals);
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
-  const [isAdding, setIsAdding] = useState(false);
 
   // Auto-determine meal type based on current time
   const getMealTypeFromTime = (date = new Date()): 'breakfast' | 'lunch' | 'dinner' | 'snack' => {
@@ -129,16 +119,11 @@ export function NutritionForm() {
       };
 
       setMeals(prev => [...prev, newMeal]);
-      setIsAdding(false);
       form.reset();
-      toast.success(`Added ${value.name} to ${mealType}`);
+      // Instead of toast, we'll use a simple alert or state message
+      console.log(`Added ${value.name} to ${mealType}`);
     }
   });
-
-  // Delete meal
-  const deleteMeal = (id: string) => {
-    setMeals(prev => prev.filter(meal => meal.id !== id));
-  };
 
   // Filter meals by selected date
   const todaysMeals = useMemo(() => {
@@ -170,9 +155,19 @@ export function NutritionForm() {
     return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
+  const formatDate = (dateStr: string) => {
+    const date = new Date(dateStr);
+    return date.toLocaleDateString('en-US', { 
+      weekday: 'long', 
+      year: 'numeric', 
+      month: 'long', 
+      day: 'numeric' 
+    });
+  };
+
   return (
     <div className="max-w-6xl mx-auto p-6 space-y-6">
-      {/* Quick Add Section */}
+      {/* Quick Add Section - Always Visible Form */}
       <Card className="border-2 border-blue-200">
         <CardHeader>
           <div className="flex items-center justify-between">
@@ -189,121 +184,96 @@ export function NutritionForm() {
           </div>
         </CardHeader>
         <CardContent>
-          {isAdding ? (
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                form.handleSubmit();
-              }}
-              className="space-y-4 bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg"
-            >
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="md:col-span-2">
-                  <form.Field
-                    name="name"
-                    validators={{
-                      onChange: ({ value }) => 
-                        !value.trim() ? 'Food name is required' : undefined
-                    }}
-                  >
-                    {(field) => (
-                      <>
-                        <Input
-                          type="text"
-                          placeholder="What did you eat? (e.g., Apple, Chicken breast, etc.)"
-                          value={field.state.value}
-                          onChange={(e) => field.handleChange(e.target.value)}
-                          onBlur={field.handleBlur}
-                          className="w-full text-lg"
-                          autoFocus
-                        />
-                        {field.state.meta.errors && (
-                          <p className="text-sm text-red-500 mt-1">
-                            {field.state.meta.errors}
-                          </p>
-                        )}
-                      </>
-                    )}
-                  </form.Field>
-                </div>
-                <div className="grid grid-cols-2 gap-2">
-                  <form.Field name="quantity">
-                    {(field) => (
-                      <Input
-                        type="number"
-                        min="0"
-                        step="any"
-                        placeholder="Qty"
-                        value={field.state.value}
-                        onChange={(e) => field.handleChange(e.target.value)}
-                      />
-                    )}
-                  </form.Field>
-                  <form.Field name="unit">
-                    {(field) => (
-                      <Select
-                        value={field.state.value}
-                        onValueChange={field.handleChange}
-                      >
-                        <SelectTrigger>
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="serving">serving</SelectItem>
-                          <SelectItem value="g">g</SelectItem>
-                          <SelectItem value="kg">kg</SelectItem>
-                          <SelectItem value="cup">cup</SelectItem>
-                          <SelectItem value="piece">piece</SelectItem>
-                          <SelectItem value="slice">slice</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    )}
-                  </form.Field>
-                </div>
-              </div>
-              
-              <form.Field name="notes">
-                {(field) => (
-                  <Input
-                    type="text"
-                    placeholder="Notes (optional)"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    className="w-full"
-                  />
-                )}
-              </form.Field>
-
-              <div className="flex gap-3">
-                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
-                  Add to {formatTime(new Date())} ({getMealTypeFromTime().charAt(0).toUpperCase() + getMealTypeFromTime().slice(1)})
-                </Button>
-                <Button
-                  type="button"
-                  variant="secondary"
-                  onClick={() => {
-                    setIsAdding(false);
-                    form.reset();
+          <div className="space-y-4 bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="md:col-span-2">
+                <form.Field
+                  name="name"
+                  validators={{
+                    onChange: ({ value }) => 
+                      !value.trim() ? 'Food name is required' : undefined
                   }}
                 >
-                  Cancel
-                </Button>
+                  {(field) => (
+                    <>
+                      <Input
+                        type="text"
+                        placeholder="What did you eat? (e.g., Apple, Chicken breast, etc.)"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
+                        onBlur={field.handleBlur}
+                        className="w-full text-lg"
+                        autoFocus
+                      />
+                      {field.state.meta.errors && (
+                        <p className="text-sm text-red-500 mt-1">
+                          {field.state.meta.errors}
+                        </p>
+                      )}
+                    </>
+                  )}
+                </form.Field>
               </div>
-              <p className="text-xs text-gray-500">
-                Meal type is automatically determined by time. Nutrition data can be added later.
-              </p>
-            </form>
-          ) : (
-            <Button
-              onClick={() => setIsAdding(true)}
-              className="w-full"
-              size="lg"
-            >
-              <Plus className="mr-2 h-5 w-5" />
-              Add Food Item
-            </Button>
-          )}
+              <div className="grid grid-cols-2 gap-2">
+                <form.Field name="quantity">
+                  {(field) => (
+                    <Input
+                      type="number"
+                      min="0"
+                      step="any"
+                      placeholder="Qty"
+                      value={field.state.value}
+                      onChange={(e) => field.handleChange(e.target.value)}
+                    />
+                  )}
+                </form.Field>
+                <form.Field name="unit">
+                  {(field) => (
+                    <Select
+                      value={field.state.value}
+                      onValueChange={field.handleChange}
+                    >
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="serving">serving</SelectItem>
+                        <SelectItem value="g">g</SelectItem>
+                        <SelectItem value="kg">kg</SelectItem>
+                        <SelectItem value="cup">cup</SelectItem>
+                        <SelectItem value="piece">piece</SelectItem>
+                        <SelectItem value="slice">slice</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  )}
+                </form.Field>
+              </div>
+            </div>
+            
+            <form.Field name="notes">
+              {(field) => (
+                <Input
+                  type="text"
+                  placeholder="Notes (optional)"
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                  className="w-full"
+                />
+              )}
+            </form.Field>
+
+            <div className="flex gap-3">
+              <Button 
+                onClick={() => form.handleSubmit()} 
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                Add to {formatTime(new Date())} ({getMealTypeFromTime().charAt(0).toUpperCase() + getMealTypeFromTime().slice(1)})
+              </Button>
+            </div>
+            <p className="text-xs text-gray-500">
+              Meal type is automatically determined by time. Nutrition data can be added later.
+            </p>
+          </div>
         </CardContent>
       </Card>
 
@@ -311,7 +281,7 @@ export function NutritionForm() {
       <Card>
         <CardHeader>
           <CardTitle>
-            Daily Summary - {format(new Date(selectedDate), 'EEEE, MMMM d, yyyy')}
+            Daily Summary - {formatDate(selectedDate)}
           </CardTitle>
         </CardHeader>
         <CardContent>
