@@ -1,414 +1,443 @@
-// components/nutrition/NutritionForm.tsx
+// components/nutrition/NutriTracker.tsx
 
-import { useForm as useTanstackForm } from "@tanstack/react-form";
-import { format } from "date-fns";
-import { CalendarIcon, Plus, X } from "lucide-react";
-import { useState } from "react";
+import React, { useState, useMemo } from 'react';
+import { useForm } from '@tanstack/react-form';
+import { Plus, Calendar, Apple, Coffee, UtensilsCrossed, Cookie } from 'lucide-react';
+import { format } from 'date-fns';
+import { toast } from 'sonner';
 
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Input } from "@/components/ui/input";
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { cn } from "@/lib/utils";
-import { toast } from "sonner";
-import { FoodItem, Meal } from "../../hooks/useNutritionData";
+// Shadcn UI components
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Badge } from '@/components/ui/badge';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-type FoodItemInput = Omit<FoodItem, "id">;
+// Import the other components
+import { NutritionTable } from './NutritionTable';
+import { NutritionStats } from './NutritionStats';
 
-export function NutritionForm({
-  addMeal,
-  createFoodItem,
-}: {
-  addMeal: (meal: Omit<Meal, "id">) => void;
-  createFoodItem: (food: Omit<FoodItem, "id">) => FoodItem;
-}) {
-  const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
-  const [mealType, setMealType] = useState<"breakfast" | "lunch" | "dinner" | "snack">(
-    "breakfast",
-  );
-  const [foodItems, setFoodItems] = useState<FoodItem[]>([]);
-  const [isAddingFood, setIsAddingFood] = useState(false);
+// Types matching the Meal type from useNutritionData
+export interface Food {
+  name: string;
+  quantity: number;
+  unit: string;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+}
 
-  // Simple state for the add food form
-  const [addFoodFormData, setAddFoodFormData] = useState({
-    name: "",
-    quantity: "1",
-    unit: "serving",
-  });
+export interface Meal {
+  id: string;
+  date: string;
+  timestamp: string;
+  mealType: 'breakfast' | 'lunch' | 'dinner' | 'snack';
+  foods: Food[];
+  totalCalories: number;
+  totalProtein: number;
+  totalCarbs: number;
+  totalFat: number;
+  notes?: string;
+}
 
-  // Function to add food item directly
-  const addFoodItemDirect = () => {
-    console.log("🔥 Direct add function called with:", addFoodFormData);
+// Initial data
+const initialMeals: Meal[] = [
+  {
+    id: '1',
+    date: '2025-06-26',
+    timestamp: '2025-06-26T08:30:00',
+    mealType: 'breakfast',
+    foods: [{
+      name: 'Apple',
+      quantity: 1,
+      unit: 'piece',
+      calories: 95,
+      protein: 0.5,
+      carbs: 25,
+      fat: 0.3
+    }],
+    totalCalories: 95,
+    totalProtein: 0.5,
+    totalCarbs: 25,
+    totalFat: 0.3
+  }
+];
 
-    if (!addFoodFormData.name || addFoodFormData.name.trim() === "") {
-      toast.error("Please provide a name for the food item.");
-      return;
-    }
+export function NutritionForm() {
+  const [meals, setMeals] = useState<Meal[]>(initialMeals);
+  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().split('T')[0]);
+  const [isAdding, setIsAdding] = useState(false);
 
-    try {
-      const newFoodItem = createFoodItem({
-        name: addFoodFormData.name.trim(),
-        calories: 0,
-        protein: 0,
-        carbs: 0,
-        fat: 0,
-        quantity: Number(addFoodFormData.quantity) || 1,
-        unit: addFoodFormData.unit.trim() || "serving",
-      });
+  // Auto-determine meal type based on current time
+  const getMealTypeFromTime = (date = new Date()): 'breakfast' | 'lunch' | 'dinner' | 'snack' => {
+    const hour = date.getHours();
+    if (hour < 11) return 'breakfast';
+    if (hour < 16) return 'lunch';
+    if (hour < 21) return 'dinner';
+    return 'snack';
+  };
 
-      console.log("✅ Created food item:", newFoodItem);
-      setFoodItems((prev) => {
-        const updated = [...prev, newFoodItem];
-        console.log("✅ Updated food items list:", updated);
-        return updated;
-      });
-
-      // Reset form
-      setAddFoodFormData({ name: "", quantity: "1", unit: "serving" });
-      setIsAddingFood(false);
-      toast.success(`Added ${newFoodItem.name} to meal`);
-    } catch (error) {
-      console.error("❌ Error creating food item:", error);
-      toast.error("Failed to add food item. Please try again.");
+  // Get meal type icon
+  const getMealIcon = (mealType: string) => {
+    switch (mealType) {
+      case 'breakfast': return <Coffee className="h-4 w-4" />;
+      case 'lunch': return <UtensilsCrossed className="h-4 w-4" />;
+      case 'dinner': return <UtensilsCrossed className="h-4 w-4" />;
+      case 'snack': return <Cookie className="h-4 w-4" />;
+      default: return <Apple className="h-4 w-4" />;
     }
   };
 
-  // Form for the entire meal
-  const mealForm = useTanstackForm({
+  // Form setup with TanStack Form
+  const form = useForm({
     defaultValues: {
-      notes: "",
+      name: '',
+      quantity: '1',
+      unit: 'serving',
+      notes: ''
     },
     onSubmit: async ({ value }) => {
-      console.log("📝 Submitting new meal:", value, foodItems);
+      const now = new Date();
+      const timestamp = `${selectedDate}T${now.toTimeString().slice(0, 8)}`;
+      const mealType = getMealTypeFromTime(now);
 
-      if (!selectedDate) {
-        toast.error("Please select a date.");
-        return;
-      }
+      const newFood: Food = {
+        name: value.name.trim(),
+        quantity: Number(value.quantity) || 1,
+        unit: value.unit,
+        calories: 0, // Will be filled later
+        protein: 0,
+        carbs: 0,
+        fat: 0
+      };
 
-      if (foodItems.length === 0) {
-        toast.error("Please add at least one food item to your meal.");
-        setIsAddingFood(true); // Open the food form to help the user
-        return;
-      }
+      const newMeal: Meal = {
+        id: Date.now().toString(),
+        date: selectedDate,
+        timestamp,
+        mealType,
+        foods: [newFood],
+        totalCalories: 0,
+        totalProtein: 0,
+        totalCarbs: 0,
+        totalFat: 0,
+        notes: value.notes
+      };
 
-      try {
-        // Calculate meal totals (default to 0 for now since we removed nutrition fields)
-        const totalCalories = foodItems.reduce(
-          (sum, item) => sum + (item.calories || 0),
-          0,
-        );
-        const totalProtein = foodItems.reduce(
-          (sum, item) => sum + (item.protein || 0),
-          0,
-        );
-        const totalCarbs = foodItems.reduce((sum, item) => sum + (item.carbs || 0), 0);
-        const totalFat = foodItems.reduce((sum, item) => sum + (item.fat || 0), 0);
-
-        // Create deep copies of food items to ensure they're properly saved
-        const foodItemsCopy = foodItems.map((item) => ({ ...item }));
-
-        // Add the meal
-        addMeal({
-          date: format(selectedDate, "yyyy-MM-dd"),
-          mealType,
-          foods: foodItemsCopy,
-          notes: value.notes,
-          totalCalories,
-          totalProtein,
-          totalCarbs,
-          totalFat,
-        });
-
-        // Reset form state
-        toast.success(
-          `${mealType.charAt(0).toUpperCase() + mealType.slice(1)} with ${foodItems.length} items saved successfully! 🎉`,
-        );
-        mealForm.reset();
-        setSelectedDate(new Date());
-        setMealType("breakfast");
-        setFoodItems([]);
-      } catch (error) {
-        console.error("Error saving meal:", error);
-        toast.error("There was an error saving your meal. Please try again.");
-      }
-    },
+      setMeals(prev => [...prev, newMeal]);
+      setIsAdding(false);
+      form.reset();
+      toast.success(`Added ${value.name} to ${mealType}`);
+    }
   });
 
-  const removeFoodItem = (id: string) => {
-    setFoodItems((prev) => prev.filter((item) => item.id !== id));
+  // Delete meal
+  const deleteMeal = (id: string) => {
+    setMeals(prev => prev.filter(meal => meal.id !== id));
+  };
+
+  // Filter meals by selected date
+  const todaysMeals = useMemo(() => {
+    return meals.filter(meal => meal.date === selectedDate)
+      .sort((a, b) => new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime());
+  }, [meals, selectedDate]);
+
+  // Calculate daily totals
+  const dailyTotals = useMemo(() => {
+    return todaysMeals.reduce((acc, meal) => ({
+      items: acc.items + meal.foods.length,
+      calories: acc.calories + meal.totalCalories,
+      protein: acc.protein + meal.totalProtein,
+      carbs: acc.carbs + meal.totalCarbs,
+      fat: acc.fat + meal.totalFat
+    }), { items: 0, calories: 0, protein: 0, carbs: 0, fat: 0 });
+  }, [todaysMeals]);
+
+  // Group meals by meal type for display
+  const mealsByType = useMemo(() => {
+    return todaysMeals.reduce((acc, meal) => {
+      if (!acc[meal.mealType]) acc[meal.mealType] = [];
+      acc[meal.mealType].push(meal);
+      return acc;
+    }, {} as Record<string, Meal[]>);
+  }, [todaysMeals]);
+
+  const formatTime = (timestamp: string) => {
+    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   return (
-    <div className="space-y-8">
-      {/* Bigger Log Meal Window */}
-      <div className="rounded-lg border-2 border-blue-200 bg-white p-8 shadow-lg dark:border-blue-700 dark:bg-gray-800">
-        <h2 className="mb-6 text-center text-2xl font-bold">Log Meal</h2>
-
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            mealForm.handleSubmit();
-          }}
-          className="space-y-6"
-        >
-          {/* Date and Meal Type in one row */}
-          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-            {/* Date Picker */}
-            <div className="flex flex-col space-y-2">
-              <label className="text-lg font-medium">Date</label>
-              <Popover>
-                <PopoverTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className={cn(
-                      "h-12 w-full pl-3 text-left font-normal",
-                      !selectedDate && "text-muted-foreground",
-                    )}
-                  >
-                    {selectedDate ? (
-                      format(selectedDate, "PPP")
-                    ) : (
-                      <span>Pick a date</span>
-                    )}
-                    <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                  </Button>
-                </PopoverTrigger>
-                <PopoverContent className="w-auto p-0" align="start">
-                  <Calendar
-                    mode="single"
-                    selected={selectedDate}
-                    onSelect={setSelectedDate}
-                    initialFocus
-                  />
-                </PopoverContent>
-              </Popover>
-            </div>
-
-            {/* Meal Type */}
-            <div className="space-y-2">
-              <label className="text-lg font-medium">Meal Type</label>
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  type="button"
-                  variant={mealType === "breakfast" ? "default" : "outline"}
-                  onClick={() => setMealType("breakfast")}
-                  className="h-12"
-                >
-                  Breakfast
-                </Button>
-                <Button
-                  type="button"
-                  variant={mealType === "lunch" ? "default" : "outline"}
-                  onClick={() => setMealType("lunch")}
-                  className="h-12"
-                >
-                  Lunch
-                </Button>
-                <Button
-                  type="button"
-                  variant={mealType === "dinner" ? "default" : "outline"}
-                  onClick={() => setMealType("dinner")}
-                  className="h-12"
-                >
-                  Dinner
-                </Button>
-                <Button
-                  type="button"
-                  variant={mealType === "snack" ? "default" : "outline"}
-                  onClick={() => setMealType("snack")}
-                  className="h-12"
-                >
-                  Snack
-                </Button>
-              </div>
+    <div className="max-w-6xl mx-auto p-6 space-y-6">
+      {/* Quick Add Section */}
+      <Card className="border-2 border-blue-200">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <CardTitle>Quick Add Food</CardTitle>
+            <div className="flex items-center gap-3">
+              <Calendar className="h-4 w-4 text-gray-500" />
+              <Input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                className="w-auto"
+              />
             </div>
           </div>
-
-          {/* Food Items Section - Much Bigger */}
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <label className="text-lg font-medium">Food Items</label>
-              <Button
-                type="button"
-                size="lg"
-                onClick={() => setIsAddingFood(true)}
-                disabled={isAddingFood}
-                className="h-12 px-6"
-              >
-                <Plus className="mr-2 h-5 w-5" /> Add Food
-              </Button>
-            </div>
-
-            {/* Food Items List Section - Bigger Container */}
-            <div className="min-h-[200px] rounded-lg border-2 border-gray-200 p-6 dark:border-gray-700">
-              <h3 className="mb-4 text-lg font-medium">
-                Added Items ({foodItems.length})
-              </h3>
-
-              {foodItems.length === 0 && !isAddingFood ? (
-                <div className="flex h-32 items-center justify-center">
-                  <p className="text-lg text-gray-500 italic">
-                    No food items added yet. Click "Add Food" to add items to your meal.
-                  </p>
-                </div>
-              ) : (
-                <div className="max-h-80 space-y-3 overflow-y-auto">
-                  {foodItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="flex items-center justify-between rounded-lg border bg-gray-50 p-4 dark:bg-gray-800"
-                    >
-                      <div>
-                        <p className="text-lg font-medium">{item.name}</p>
-                        <p className="text-sm text-gray-500 dark:text-gray-400">
-                          {item.quantity} {item.unit}
-                          <span className="ml-2 rounded bg-yellow-100 px-2 py-1 text-xs dark:bg-yellow-900">
-                            Nutrition info can be added later
-                          </span>
-                        </p>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeFoodItem(item.id)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            {/* Add Food Form - Simplified */}
-            {isAddingFood && (
-              <div className="mt-3 space-y-4 rounded-lg border-2 border-blue-200 bg-blue-50 p-6 dark:border-blue-800 dark:bg-blue-900/10">
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-medium">Add Food Item</h3>
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setIsAddingFood(false)}
+        </CardHeader>
+        <CardContent>
+          {isAdding ? (
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                form.handleSubmit();
+              }}
+              className="space-y-4 bg-blue-50 dark:bg-blue-950/20 p-4 rounded-lg"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="md:col-span-2">
+                  <form.Field
+                    name="name"
+                    validators={{
+                      onChange: ({ value }) => 
+                        !value.trim() ? 'Food name is required' : undefined
+                    }}
                   >
-                    <X className="h-4 w-4" />
-                  </Button>
+                    {(field) => (
+                      <>
+                        <Input
+                          type="text"
+                          placeholder="What did you eat? (e.g., Apple, Chicken breast, etc.)"
+                          value={field.state.value}
+                          onChange={(e) => field.handleChange(e.target.value)}
+                          onBlur={field.handleBlur}
+                          className="w-full text-lg"
+                          autoFocus
+                        />
+                        {field.state.meta.errors && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {field.state.meta.errors}
+                          </p>
+                        )}
+                      </>
+                    )}
+                  </form.Field>
                 </div>
-
-                <div className="space-y-4">
-                  {/* Only Essential Fields */}
-                  <div>
-                    <label className="text-sm font-medium">
-                      Food Name <span className="text-red-500">*</span>
-                    </label>
-                    <Input
-                      value={addFoodFormData.name}
-                      onChange={(e) =>
-                        setAddFoodFormData((prev) => ({ ...prev, name: e.target.value }))
-                      }
-                      placeholder="e.g., Apple"
-                      required
-                      autoFocus
-                      className="h-12 text-lg"
-                    />
-                  </div>
-
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="text-sm font-medium">Quantity</label>
+                <div className="grid grid-cols-2 gap-2">
+                  <form.Field name="quantity">
+                    {(field) => (
                       <Input
                         type="number"
                         min="0"
                         step="any"
-                        value={addFoodFormData.quantity}
-                        onChange={(e) =>
-                          setAddFoodFormData((prev) => ({
-                            ...prev,
-                            quantity: e.target.value,
-                          }))
-                        }
-                        placeholder="1"
-                        className="h-12"
+                        placeholder="Qty"
+                        value={field.state.value}
+                        onChange={(e) => field.handleChange(e.target.value)}
                       />
-                    </div>
-                    <div>
-                      <label className="text-sm font-medium">Unit</label>
-                      <select
-                        value={addFoodFormData.unit}
-                        onChange={(e) =>
-                          setAddFoodFormData((prev) => ({
-                            ...prev,
-                            unit: e.target.value,
-                          }))
-                        }
-                        className="h-12 w-full rounded-md border border-gray-300 px-3 focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                    )}
+                  </form.Field>
+                  <form.Field name="unit">
+                    {(field) => (
+                      <Select
+                        value={field.state.value}
+                        onValueChange={field.handleChange}
                       >
-                        <option value="serving">serving</option>
-                        <option value="g">g</option>
-                        <option value="kg">kg</option>
-                        <option value="ml">ml</option>
-                        <option value="l">l</option>
-                        <option value="cup">cup</option>
-                        <option value="tbsp">tbsp</option>
-                        <option value="tsp">tsp</option>
-                        <option value="piece">piece</option>
-                        <option value="slice">slice</option>
-                      </select>
-                    </div>
-                  </div>
-
-                  <div className="pt-2">
-                    <Button
-                      type="button"
-                      className="h-12 w-full text-lg"
-                      onClick={addFoodItemDirect}
-                    >
-                      Add to Meal
-                    </Button>
-                    <p className="mt-2 text-center text-xs text-gray-500">
-                      Nutrition info (calories, protein, etc.) can be added later via AI
-                      or manual editing
-                    </p>
-                  </div>
+                        <SelectTrigger>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="serving">serving</SelectItem>
+                          <SelectItem value="g">g</SelectItem>
+                          <SelectItem value="kg">kg</SelectItem>
+                          <SelectItem value="cup">cup</SelectItem>
+                          <SelectItem value="piece">piece</SelectItem>
+                          <SelectItem value="slice">slice</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </form.Field>
                 </div>
               </div>
+              
+              <form.Field name="notes">
+                {(field) => (
+                  <Input
+                    type="text"
+                    placeholder="Notes (optional)"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    className="w-full"
+                  />
+                )}
+              </form.Field>
+
+              <div className="flex gap-3">
+                <Button type="submit" className="bg-blue-600 hover:bg-blue-700">
+                  Add to {formatTime(new Date())} ({getMealTypeFromTime().charAt(0).toUpperCase() + getMealTypeFromTime().slice(1)})
+                </Button>
+                <Button
+                  type="button"
+                  variant="secondary"
+                  onClick={() => {
+                    setIsAdding(false);
+                    form.reset();
+                  }}
+                >
+                  Cancel
+                </Button>
+              </div>
+              <p className="text-xs text-gray-500">
+                Meal type is automatically determined by time. Nutrition data can be added later.
+              </p>
+            </form>
+          ) : (
+            <Button
+              onClick={() => setIsAdding(true)}
+              className="w-full"
+              size="lg"
+            >
+              <Plus className="mr-2 h-5 w-5" />
+              Add Food Item
+            </Button>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Daily Summary */}
+      <Card>
+        <CardHeader>
+          <CardTitle>
+            Daily Summary - {format(new Date(selectedDate), 'EEEE, MMMM d, yyyy')}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
+            <div className="bg-blue-50 dark:bg-blue-950/20 p-3 rounded-lg text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Items</p>
+              <p className="text-2xl font-bold text-blue-600">{dailyTotals.items}</p>
+            </div>
+            <div className="bg-green-50 dark:bg-green-950/20 p-3 rounded-lg text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Calories</p>
+              <p className="text-2xl font-bold text-green-600">{dailyTotals.calories}</p>
+            </div>
+            <div className="bg-purple-50 dark:bg-purple-950/20 p-3 rounded-lg text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Protein</p>
+              <p className="text-2xl font-bold text-purple-600">{dailyTotals.protein}g</p>
+            </div>
+            <div className="bg-yellow-50 dark:bg-yellow-950/20 p-3 rounded-lg text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Carbs</p>
+              <p className="text-2xl font-bold text-yellow-600">{dailyTotals.carbs}g</p>
+            </div>
+            <div className="bg-red-50 dark:bg-red-950/20 p-3 rounded-lg text-center">
+              <p className="text-sm text-gray-600 dark:text-gray-400">Fat</p>
+              <p className="text-2xl font-bold text-red-600">{dailyTotals.fat}g</p>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Today's Food Items */}
+      <Card>
+        <CardHeader>
+          <CardTitle>Today's Food Items</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {todaysMeals.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Apple className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+              <p className="text-lg">No food items logged for this day</p>
+              <p className="text-sm">Add your first item above!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {Object.entries(mealsByType).map(([mealType, mealItems]) => (
+                <Card key={mealType} className="border">
+                  <CardHeader className="pb-3">
+                    <div className="flex items-center gap-2">
+                      {getMealIcon(mealType)}
+                      <CardTitle className="text-base capitalize">{mealType}</CardTitle>
+                      <Badge variant="secondary">{mealItems.length} items</Badge>
+                    </div>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-2">
+                      {mealItems.map((meal) => (
+                        <div key={meal.id}>
+                          {meal.foods.map((food, idx) => (
+                            <div key={idx} className="flex items-center justify-between bg-gray-50 dark:bg-gray-900 p-3 rounded">
+                              <div className="flex-1">
+                                <div className="flex items-center gap-3">
+                                  <span className="font-medium">{food.name}</span>
+                                  <span className="text-sm text-gray-500">
+                                    {food.quantity} {food.unit}
+                                  </span>
+                                  <span className="text-xs text-gray-400">
+                                    {formatTime(meal.timestamp)}
+                                  </span>
+                                </div>
+                                <div className="text-xs text-gray-500 mt-1">
+                                  {food.calories > 0 ? (
+                                    <span>{food.calories} cal • {food.protein}g protein • {food.carbs}g carbs • {food.fat}g fat</span>
+                                  ) : (
+                                    <span className="text-amber-600">Nutrition data missing - add via AI or manual entry</span>
+                                  )}
+                                </div>
+                                {meal.notes && (
+                                  <div className="text-xs text-gray-400 mt-1">
+                                    Note: {meal.notes}
+                                  </div>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Quick Stats Alert */}
+      <Alert className="bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/20 dark:to-indigo-950/20 border-blue-200">
+        <AlertDescription>
+          <h3 className="font-semibold mb-2">Quick Insights</h3>
+          <div className="space-y-2 text-sm">
+            {dailyTotals.items === 0 ? (
+              <p className="flex items-center gap-2">
+                <span className="h-2 w-2 rounded-full bg-gray-400"></span>
+                Start tracking your food to see daily insights and nutrition analysis.
+              </p>
+            ) : (
+              <>
+                <p className="flex items-center gap-2">
+                  <span className="h-2 w-2 rounded-full bg-blue-500"></span>
+                  You've logged {dailyTotals.items} food item{dailyTotals.items !== 1 ? 's' : ''} today.
+                </p>
+                {dailyTotals.calories === 0 && (
+                  <p className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-amber-500"></span>
+                    Add nutrition data to your items for detailed calorie and macro tracking.
+                  </p>
+                )}
+                {dailyTotals.calories > 0 && (
+                  <p className="flex items-center gap-2">
+                    <span className="h-2 w-2 rounded-full bg-green-500"></span>
+                    Total calories: {dailyTotals.calories} | Protein: {dailyTotals.protein}g | Carbs: {dailyTotals.carbs}g | Fat: {dailyTotals.fat}g
+                  </p>
+                )}
+              </>
             )}
           </div>
-
-          {/* Notes */}
-          <div>
-            <label className="text-lg font-medium">Notes</label>
-            <mealForm.Field name="notes">
-              {(field) => (
-                <Input
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
-                  placeholder="Any notes about this meal (optional)"
-                  className="h-12"
-                />
-              )}
-            </mealForm.Field>
-          </div>
-
-          <Button
-            type="submit"
-            className="h-14 w-full text-lg font-semibold"
-            disabled={foodItems.length === 0}
-          >
-            {foodItems.length > 0
-              ? `Save ${mealType.charAt(0).toUpperCase() + mealType.slice(1)} with ${foodItems.length} item${foodItems.length !== 1 ? "s" : ""}`
-              : "Add food items first"}
-          </Button>
-
-          {foodItems.length === 0 && (
-            <p className="mt-2 text-center text-sm text-amber-600">
-              Please add at least one food item to save your meal
-            </p>
-          )}
-        </form>
-      </div>
+        </AlertDescription>
+      </Alert>
     </div>
   );
 }
