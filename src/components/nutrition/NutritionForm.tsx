@@ -64,9 +64,7 @@ export function NutritionForm() {
       notes: ''
     },
     onSubmit: async ({ value }) => {
-      const now = new Date();
-      const timestamp = `${selectedDate}T${now.toTimeString().slice(0, 8)}`;
-      const mealType = getMealTypeFromTime(now);
+      const mealType = getMealTypeFromTime();
 
       // Create food item using the hook's helper
       const foodItem = createFoodItem({
@@ -82,7 +80,6 @@ export function NutritionForm() {
       // Add meal using the hook
       addMeal({
         date: selectedDate,
-        timestamp,
         mealType,
         foods: [foodItem],
         notes: value.notes || '',
@@ -101,9 +98,9 @@ export function NutritionForm() {
   const todaysMeals = useMemo(() => {
     return meals.filter(meal => meal.date === selectedDate)
       .sort((a, b) => {
-        // Sort by timestamp if available, otherwise by ID
-        const timeA = meal.timestamp ? new Date(meal.timestamp).getTime() : 0;
-        const timeB = meal.timestamp ? new Date(meal.timestamp).getTime() : 0;
+        // Sort by createdAt timestamp
+        const timeA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+        const timeB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
         return timeA - timeB;
       });
   }, [meals, selectedDate]);
@@ -128,9 +125,9 @@ export function NutritionForm() {
     }, {} as Record<string, typeof meals>);
   }, [todaysMeals]);
 
-  const formatTime = (timestamp: string) => {
-    if (!timestamp) return '';
-    return new Date(timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  const formatTime = (createdAt: string) => {
+    if (!createdAt) return '';
+    return new Date(createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
   const formatDate = (dateStr: string) => {
@@ -399,9 +396,9 @@ export function NutritionForm() {
                                           <Badge variant="outline">
                                             {food.quantity} {food.unit}
                                           </Badge>
-                                          {meal.timestamp && (
+                                          {meal.createdAt && (
                                             <span className="text-xs text-muted-foreground">
-                                              {formatTime(meal.timestamp)}
+                                              {formatTime(meal.createdAt)}
                                             </span>
                                           )}
                                         </div>
