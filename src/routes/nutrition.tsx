@@ -24,15 +24,6 @@ function NutritionPage() {
             <NutritionForm addMeal={addMeal} createFoodItem={createFoodItem} />
           </div>
         </div>
-
-        {/* Stats & History Column */}
-        <div className="space-y-8 lg:col-span-4">
-          <NutritionStats meals={meals} />
-
-          <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
-            <NutritionTable meals={meals} deleteMeal={deleteMeal} />
-          </div>
-        </div>
       </div>
     </div>
   );
