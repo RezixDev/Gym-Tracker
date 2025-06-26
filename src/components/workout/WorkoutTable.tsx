@@ -182,17 +182,17 @@ export function WorkoutTable({
                                 {workout.machineNumber || "-"}
                               </td>
                             )}
-                            <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-700 dark:text-gray-200">
-                              {!workout.sets || workout.sets.length === 0 ? "-" : (
-                                <div className="space-y-1">
-                                  {workout.sets.map((set, setIndex) => (
-                                    <div key={setIndex} className="text-xs">
-                                      Set {setIndex + 1}: {set.weight}kg × {set.repetitions} reps
-                                    </div>
-                                  ))}
-                                </div>
-                              )}
-                            </td>
+                              <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-700 dark:text-gray-200">
+                                {!workout.sets || workout.sets.length === 0 ? "-" : (
+                                  <div className="space-y-1">
+                                    {workout.sets.map((set, setIndex) => (
+                                      <div key={`${workout.id}-${set.weight}kg-${set.repetitions}reps`} className="text-xs">
+                                        Set {setIndex + 1}: {set.weight}kg × {set.repetitions} reps
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </td>
                             <td className="px-6 py-4 text-sm whitespace-nowrap text-gray-700 dark:text-gray-200">
                               {totalVolume > 0 ? `${totalVolume}kg` : "-"}
                             </td>
