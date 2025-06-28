@@ -1,18 +1,14 @@
 // app/routes/nutrition.tsx
 import { createFileRoute } from "@tanstack/react-router";
-//import { NutritionForm } from "../components/nutrition/NutritionForm";
-
 import { NutritionForm } from "../features/nutrition/presentation/components/NutritionForm/NutritionForm"
 
-import { useNutritionData } from "../hooks/useNutritionData";
 
 export const Route = createFileRoute("/nutrition")({
   component: NutritionPage,
 });
 
 function NutritionPage() {
-  const { meals, addMeal, deleteMeal, createFoodItem } = useNutritionData();
-
+ 
   return (
     <div className="container mx-auto p-8">
       <h1 className="mb-6 text-3xl font-bold">Nutrition Tracking</h1>
