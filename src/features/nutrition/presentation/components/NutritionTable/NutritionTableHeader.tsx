@@ -1,6 +1,5 @@
 // src/features/nutrition/presentation/components/NutritionTable/NutritionTableHeader.tsx
-import React from 'react';
-import { MEAL_TYPES } from '../../../domain';
+import { MEAL_TYPES } from '~/features/nutrition/domain/constants';
 
 interface NutritionTableHeaderProps {
   stats: {

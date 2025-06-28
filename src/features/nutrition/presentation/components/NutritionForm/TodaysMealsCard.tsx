@@ -4,7 +4,11 @@ import { Apple, Coffee, Cookie, UtensilsCrossed } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Meal, MealType, MealService, DateUtils } from '../../../domain';
+
+import { Meal } from '../../../domain/models/Meal';
+import { MealService } from '../../../domain/services/MealService';
+import { MealType } from '../../../domain/models/Meal';
+import { DateUtils } from '../../../domain/utils/dateUtils';
 
 interface TodaysMealsCardProps {
   meals: Meal[];

@@ -1,7 +1,6 @@
 // src/features/nutrition/presentation/components/NutritionStats/NutritionStats.tsx
-import React, { useMemo } from 'react';
-import { useNutritionData } from '../../../application';
-import { DateUtils } from '../../../domain';
+import { useMemo } from 'react';
+import { useNutritionData } from '../../../application/hooks/useNutritionData';
 
 // Sub-components
 import { StatsOverview } from './StatsOverview';

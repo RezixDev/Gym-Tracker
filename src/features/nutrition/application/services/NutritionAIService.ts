@@ -1,5 +1,5 @@
 // src/features/nutrition/application/services/NutritionAIService.ts
-import { Meal, FoodItem } from '../../domain';
+import { Meal } from '../../domain/models/Meal';
 import { dependencyFactory } from '../../infrastructure/factory/DependencyFactory';
 
 export interface AIGeneratedNutrition {

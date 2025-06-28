@@ -15,20 +15,21 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
-import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
-// Domain imports
-import { FOOD_UNITS, MealTypeService, DateUtils } from '../../../domain';
+// Direct domain imports - better for tree-shaking
+import { FOOD_UNITS } from '../../../domain/constants';
+import { MealTypeService } from '../../../domain/services/MealTypeService';
+import { DateUtils } from '../../../domain/utils/dateUtils';
 
-// Application imports
-import { useNutritionData } from '../../../application';
+// Direct application imports
+import { useNutritionData } from '../../../application/hooks/useNutritionData';
 
 // Sub-components
 import { DailySummaryCard } from './DailySummaryCard';
 import { TodaysMealsCard } from './TodaysMealsCard';
 import { QuickInsights } from './QuickInsights';
-import { NutritionTable } from '../NutritionTable';
+import { NutritionTable } from '../NutritionTable/NutritionTable';
 import { NutritionStats } from '../NutritionStats/NutritionStats';
 
 export function NutritionForm() {

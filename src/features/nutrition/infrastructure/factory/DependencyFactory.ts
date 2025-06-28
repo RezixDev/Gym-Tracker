@@ -1,14 +1,14 @@
 // src/features/nutrition/infrastructure/factory/DependencyFactory.ts
-import { 
-  MealRepository, 
-  LocalStorageMealRepository,
-  NutritionAPIService,
-  MockNutritionAPIService,
-  CacheService,
-  LocalStorageCacheService,
-  ExportService,
-  MealExportService
-} from '../';
+
+import {MealRepository} from '../repositories/MealRepository';
+import {LocalStorageMealRepository} from '../repositories/LocalStorageMealRepository';
+import {NutritionAPIService} from '../services/NutritionAPIService';
+import { MockNutritionAPIService } from '../services/NutritionAPIService';
+import {CacheService} from '../services/CacheService';
+import { LocalStorageCacheService } from '../services/CacheService';
+import {ExportService} from '../services/ExportService';
+import { MealExportService } from '../services/ExportService';
+
 
 export interface Dependencies {
   mealRepository: MealRepository;

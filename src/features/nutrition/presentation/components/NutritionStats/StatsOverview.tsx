@@ -1,6 +1,6 @@
 // src/features/nutrition/presentation/components/NutritionStats/StatsOverview.tsx
 import React from 'react';
-import { NutritionStatistics } from '../../../domain';
+import { NutritionStatistics } from '../../../domain/models/Statistics';
 
 interface StatsOverviewProps {
   stats: NutritionStatistics;

@@ -1,6 +1,6 @@
 // src/features/nutrition/presentation/components/NutritionStats/RecentDaysTable.tsx
-import React from 'react';
-import { DailyStatistics, DateUtils } from '../../../domain';
+
+import { DailyStatistics } from '../../../domain/models/Statistics';
 
 interface RecentDaysTableProps {
   recentDays: DailyStatistics[];
