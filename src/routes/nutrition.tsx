@@ -1,8 +1,9 @@
 // app/routes/nutrition.tsx
 import { createFileRoute } from "@tanstack/react-router";
-import { NutritionForm } from "../components/nutrition/NutritionForm";
-import { NutritionStats } from "../components/nutrition/NutritionStats";
-import { NutritionTable } from "../components/nutrition/NutritionTable";
+//import { NutritionForm } from "../components/nutrition/NutritionForm";
+
+import { NutritionForm } from "../features/nutrition/presentation/components/NutritionForm/NutritionForm"
+
 import { useNutritionData } from "../hooks/useNutritionData";
 
 export const Route = createFileRoute("/nutrition")({
@@ -21,7 +22,7 @@ function NutritionPage() {
         <div className="lg:col-span-4">
           <div className="rounded-lg bg-white p-6 shadow dark:bg-gray-800">
             <h2 className="mb-4 text-xl font-semibold">Log Meal</h2>
-            <NutritionForm addMeal={addMeal} createFoodItem={createFoodItem} />
+            <NutritionForm />
           </div>
         </div>
       </div>
