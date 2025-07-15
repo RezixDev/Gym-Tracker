@@ -1,5 +1,5 @@
 // src/features/nutrition/domain/utils/validators.ts
-import { Meal, FoodItem } from '../models';
+import { Meal, FoodItem } from '@/features/nutrition/models';
 
 export interface ValidationResult {
   isValid: boolean;

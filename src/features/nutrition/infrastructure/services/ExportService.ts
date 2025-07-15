@@ -1,5 +1,5 @@
 // src/features/nutrition/infrastructure/services/ExportService.ts
-import { Meal } from '../../domain/models';
+import { Meal } from '@/features/nutrition/domain/models';
 
 export interface ExportService {
   exportToJSON(meals: Meal[]): string;

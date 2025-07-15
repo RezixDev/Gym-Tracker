@@ -1,6 +1,6 @@
 // src/features/nutrition/application/dto/MealDTO.ts
 
-import { Meal } from '../../domain/models/Meal';
+import { Meal } from '@/features/nutrition/domain/models/Meal';
 
 export interface MealSummaryDTO {
   id: string;

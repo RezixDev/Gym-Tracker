@@ -1,5 +1,5 @@
 // src/features/nutrition/infrastructure/repositories/MealRepository.ts
-import { Meal } from '../../domain/models';
+import { Meal } from '@/features/nutrition/domain/models';
 
 export interface MealRepository {
   getAll(): Promise<Meal[]>;

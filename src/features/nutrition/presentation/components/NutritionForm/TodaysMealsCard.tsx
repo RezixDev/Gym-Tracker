@@ -5,10 +5,10 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
-import { Meal } from '../../../domain/models/Meal';
-import { MealService } from '../../../domain/services/MealService';
-import { MealType } from '../../../domain/models/Meal';
-import { DateUtils } from '../../../domain/utils/dateUtils';
+import { Meal } from '@/features/nutrition/domain/models/Meal';
+import { MealService } from '@/features/nutrition/domain/services/MealService';
+import { MealType } from '@/features/nutrition/domain/models/Meal';
+import { DateUtils } from '@/features/nutrition/domain/utils/dateUtils';
 
 interface TodaysMealsCardProps {
   meals: Meal[];

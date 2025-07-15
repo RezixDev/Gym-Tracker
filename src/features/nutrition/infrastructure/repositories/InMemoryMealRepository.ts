@@ -1,6 +1,6 @@
 // src/features/nutrition/infrastructure/repositories/InMemoryMealRepository.ts
 // For testing purposes
-import { Meal } from '../../domain/models';
+import { Meal } from '@/features/nutrition/domain/models';
 import { MealRepository } from './MealRepository';
 
 export class InMemoryMealRepository implements MealRepository {

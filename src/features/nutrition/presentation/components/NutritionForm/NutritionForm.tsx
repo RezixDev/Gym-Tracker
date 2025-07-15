@@ -18,19 +18,19 @@ import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 
 // Direct domain imports - better for tree-shaking
-import { FOOD_UNITS } from '../../../domain/constants';
-import { MealTypeService } from '../../../domain/services/MealTypeService';
-import { DateUtils } from '../../../domain/utils/dateUtils';
+import { FOOD_UNITS } from '@/features/nutrition/domain/constants';
+import { MealTypeService } from '@/features/nutrition/domain/services/MealTypeService';
+import { DateUtils } from '@/features/nutrition/domain/utils/dateUtils';
 
 // Direct application imports
-import { useNutritionData } from '../../../application/hooks/useNutritionData';
+import { useNutritionData } from '@/features/nutrition/application/hooks/useNutritionData';
 
 // Sub-components
 import { DailySummaryCard } from './DailySummaryCard';
 import { TodaysMealsCard } from './TodaysMealsCard';
 import { QuickInsights } from './QuickInsights';
-import { NutritionTable } from '../NutritionTable/NutritionTable';
-import { NutritionStats } from '../NutritionStats/NutritionStats';
+import { NutritionTable } from '@/features/nutrition/presentation/components/NutritionTable/NutritionTable';
+import { NutritionStats } from '@/features/nutrition/presentation/components/NutritionStats/NutritionStats';
 
 export function NutritionForm() {
   const {

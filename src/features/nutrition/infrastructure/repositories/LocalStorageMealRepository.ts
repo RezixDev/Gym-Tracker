@@ -1,5 +1,5 @@
 // src/features/nutrition/infrastructure/repositories/LocalStorageMealRepository.ts
-import { Meal } from '../../domain/models';
+import { Meal } from '@/features/nutrition/domain/models';
 import { MealRepository } from './MealRepository';
 
 export class LocalStorageMealRepository implements MealRepository {

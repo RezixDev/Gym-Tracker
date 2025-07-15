@@ -1,5 +1,5 @@
 // src/features/nutrition/domain/services/NutritionCalculator.ts
-import { FoodItem, Meal, NutritionData, NutritionTotals } from '../models';
+import { FoodItem, Meal, NutritionData, NutritionTotals } from '@/features/nutrition/models';
 
 export class NutritionCalculator {
   /**

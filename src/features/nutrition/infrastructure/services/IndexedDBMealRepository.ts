@@ -1,7 +1,7 @@
 // src/features/nutrition/infrastructure/services/IndexedDBMealRepository.ts
 // Alternative implementation using IndexedDB for better performance with large datasets
-import { Meal } from '../../domain/models';
-import { MealRepository } from '../repositories/MealRepository';
+import { Meal } from '@/features/nutrition/domain/models';
+import { MealRepository } from '@/features/nutrition/repositories/MealRepository';
 
 export class IndexedDBMealRepository implements MealRepository {
   private dbName = 'NutritionTrackerDB';

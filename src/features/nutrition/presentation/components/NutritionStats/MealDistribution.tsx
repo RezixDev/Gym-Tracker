@@ -1,6 +1,6 @@
 // src/features/nutrition/presentation/components/NutritionStats/MealDistribution.tsx
 
-import { NutritionStatistics } from '../../../domain/models/Statistics';
+import { NutritionStatistics } from '@/features/nutrition/domain/models/Statistics';
 
 interface MealDistributionProps {
   mealCounts: NutritionStatistics['mealCounts'];

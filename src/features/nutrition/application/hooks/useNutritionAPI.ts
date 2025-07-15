@@ -1,7 +1,7 @@
 // src/features/nutrition/application/hooks/useNutritionAPI.ts
 import { useState, useCallback } from 'react';
-import { dependencyFactory } from '../../infrastructure/factory/DependencyFactory';
-import { NutritionAPIResponse } from '../../infrastructure/services/NutritionAPIService';
+import { dependencyFactory } from '@/features/nutrition/infrastructure/factory/DependencyFactory';
+import { NutritionAPIResponse } from '@/features/nutrition/infrastructure/services/NutritionAPIService';
 
 export interface UseNutritionAPIReturn {
   searching: boolean;

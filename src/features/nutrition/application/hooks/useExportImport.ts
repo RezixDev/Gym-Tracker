@@ -1,7 +1,7 @@
 // src/features/nutrition/application/hooks/useExportImport.ts
 import { useState, useCallback } from 'react';
-import { Meal } from '../../domain/models/Meal';
-import { dependencyFactory } from '../../infrastructure/factory/DependencyFactory';
+import { Meal } from '@/features/nutrition/domain/models/Meal';
+import { dependencyFactory } from '@/features/nutrition/infrastructure/factory/DependencyFactory';
 
 export interface UseExportImportReturn {
   exporting: boolean;

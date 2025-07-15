@@ -1,5 +1,5 @@
 // src/features/nutrition/infrastructure/services/NutritionAPIService.ts
-import { FoodItem } from '../../domain/models';
+import { FoodItem } from '@/features/nutrition/domain/models';
 
 export interface NutritionAPIResponse {
   name: string;

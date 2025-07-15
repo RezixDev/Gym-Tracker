@@ -1,9 +1,9 @@
 // src/features/nutrition/presentation/components/NutritionForm/DailySummaryCard.tsx
 import { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Meal } from '../../../domain/models/Meal';
-import { NutritionCalculator } from '../../../domain/services/NutritionCalculator';
-import { DateUtils } from '../../../domain/utils/dateUtils';
+import { Meal } from '@/features/nutrition/domain/models/Meal';
+import { NutritionCalculator } from '@/features/nutrition/domain/services/NutritionCalculator';
+import { DateUtils } from '@/features/nutrition/domain/utils/dateUtils';
 
 interface DailySummaryCardProps {
   meals: Meal[];

@@ -1,7 +1,7 @@
 // src/features/nutrition/presentation/components/NutritionTable/FoodItemsPopover.tsx
 
 import { toast } from 'sonner';
-import type { Meal } from '../../../domain/models/Meal';
+import type { Meal } from '@/features/nutrition/domain/models/Meal';
 
 interface FoodItemsPopoverProps {
   meal: Meal;

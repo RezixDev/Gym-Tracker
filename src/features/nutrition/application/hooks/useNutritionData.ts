@@ -1,12 +1,12 @@
 // src/features/nutrition/application/hooks/useNutritionData.ts
 import { useState, useEffect, useCallback, useMemo } from 'react';
 
-import { Meal } from '../../domain/models/Meal';
-import { FoodItem } from '../../domain/models/FoodItem';
-import { MealService } from '../../domain/services/MealService';
-import { NutritionCalculator } from '../../domain/services/NutritionCalculator';
-import { MealTypeService } from '../../domain/services/MealTypeService';
-import { dependencyFactory } from '../../infrastructure/factory/DependencyFactory';
+import { Meal } from '@/features/nutrition/domain/models/Meal';
+import { FoodItem } from '@/features/nutrition/domain/models/FoodItem';
+import { MealService } from '@/features/nutrition/domain/services/MealService';
+import { NutritionCalculator } from '@/features/nutrition/domain/services/NutritionCalculator';
+import { MealTypeService } from '@/features/nutrition/domain/services/MealTypeService';
+import { dependencyFactory } from '@/features/nutrition/infrastructure/factory/DependencyFactory';
 
 export interface UseNutritionDataReturn {
   // State

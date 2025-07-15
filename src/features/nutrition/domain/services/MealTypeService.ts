@@ -1,5 +1,5 @@
 // src/features/nutrition/domain/services/MealTypeService.ts
-import { MealType } from '../models';
+import { MealType } from '@/features/nutrition/domain/models/Meal';
 
 export class MealTypeService {
   /**

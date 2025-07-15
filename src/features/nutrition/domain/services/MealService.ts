@@ -1,7 +1,7 @@
 // src/features/nutrition/domain/services/MealService.ts
-import { Meal, FoodItem, NutritionStatistics, DailyStatistics } from '../models';
+import { Meal, FoodItem, NutritionStatistics, DailyStatistics } from '@/features/nutrition/models';
 import { NutritionCalculator } from './NutritionCalculator';
-import { DateUtils } from '../utils/dateUtils';
+import { DateUtils } from '@/features/nutrition/domain/utils/dateUtils';
 
 export class MealService {
   /**

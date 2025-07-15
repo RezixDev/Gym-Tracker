@@ -13,13 +13,13 @@ import { AlertCircle, CheckCircle, Edit, Plus, Trash2 } from 'lucide-react';
 import { toast } from 'sonner';
 
 // Domain imports
-import { DateUtils } from '../../../domain/utils/dateUtils';
-import { NutritionCalculator } from '../../../domain/services/NutritionCalculator';
+import { DateUtils } from '@/features/nutrition/domain/utils/dateUtils';
+import { NutritionCalculator } from '@/features/nutrition/domain/services/NutritionCalculator';
 
-import { Meal } from '../../../domain/models/Meal';
+import { Meal } from '@/features/nutrition/domain/models/Meal';
 // Application imports
-import { useNutritionData } from '../../../application/hooks/useNutritionData';
-import { useMealFilters } from '../../../application/hooks/useMealFilters';
+import { useNutritionData } from '@/features/nutrition/application/hooks/useNutritionData';
+import { useMealFilters } from '@/features/nutrition/application/hooks/useMealFilters';
 
 // Sub-components
 import { NutritionTableHeader } from './NutritionTableHeader';

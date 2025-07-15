@@ -1,7 +1,7 @@
 // src/features/nutrition/application/hooks/useMealFilters.ts
 import { useState, useMemo } from 'react';
-import { Meal } from '../../domain/models/Meal';
-import { MealType } from '../../domain/models/Meal';
+import { Meal } from '@/features/nutrition/domain/models/Meal';
+import { MealType } from '@/features/nutrition/domain/models/Meal';
 
 export interface MealFilters {
   dateRange?: {

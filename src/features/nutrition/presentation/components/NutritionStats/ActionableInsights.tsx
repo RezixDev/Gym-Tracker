@@ -1,6 +1,6 @@
 // src/features/nutrition/presentation/components/NutritionStats/ActionableInsights.tsx
 
-import { NutritionStatistics } from '../../../domain/models/Statistics';
+import { NutritionStatistics } from '@/features/nutrition/domain/models/Statistics';
 
 interface ActionableInsightsProps {
   stats: NutritionStatistics;
